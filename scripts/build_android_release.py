@@ -16,7 +16,7 @@ from pathlib import Path
 
 
 UPSTREAM_URL = b"https://cdn.jsdelivr.net/npm/@foxreis/tizentube/dist/userScript.js?v="
-USERSCRIPT_URL = b"//cdn.jsdelivr.net/gh/Tovarritch/TizenTube@r36/dist/userScript.js?ve="
+USERSCRIPT_URL = b"//cdn.jsdelivr.net/gh/Tovarritch/TizenTube@r37/dist/userScript.js?ve="
 
 
 def is_signature_file(name: str) -> bool:

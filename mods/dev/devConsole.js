@@ -24,6 +24,36 @@ window.tt = {
   text: (selector = 'body') => (document.querySelector(selector)?.innerText || '').slice(0, 4000),
 };
 
+// Leak recorder: members-only videos that are actually displayed, despite the
+// filter. Checks the data behind the tiles on screen every 5 seconds and keeps
+// what it finds across restarts (tt.leaks() reads, tt.leaks(true) clears).
+const LEAK_KEY = 'tt-dev-leaks';
+const LEAK_MARK = /MEMBERS_ONLY|SPONSORS_ONLY|members[ -]only|doar pentru membri|"iconType":"[A-Z_]*MEMBER/i;
+const reported = new Set();
+setInterval(() => {
+  for (const tile of document.querySelectorAll('ytlr-tile-renderer, ytlr-lockup-view-model')) {
+    const data = tile.__instance?.props?.data;
+    const id = data?.contentId || data?.tileRenderer?.contentId;
+    if (!data || reported.has(id)) continue;
+    const text = JSON.stringify(data);
+    const mark = text.match(LEAK_MARK);
+    if (!mark) continue;
+    reported.add(id);
+    const row = tile.closest('ytlr-shelf-renderer');
+    try {
+      const leaks = JSON.parse(localStorage.getItem(LEAK_KEY) || '[]');
+      leaks.push({ at: new Date().toISOString(), hash: location.hash, build: window.tizenTubeBuild, id,
+        title: (tile.innerText || '').split(/\n/)[0].slice(0, 60), row: (row?.innerText || '').split(/\n/)[0].slice(0, 40),
+        mark: text.slice(Math.max(0, mark.index - 120), mark.index + 60) });
+      localStorage.setItem(LEAK_KEY, JSON.stringify(leaks.slice(-30)));
+    } catch (_) {}
+  }
+}, 5000);
+window.tt.leaks = clear => {
+  if (clear) { localStorage.removeItem(LEAK_KEY); return []; }
+  try { return JSON.parse(localStorage.getItem(LEAK_KEY) || '[]'); } catch (_) { return []; }
+};
+
 function serialize(value, depth = 0, seen = new WeakSet()) {
   if (value === undefined) return '(undefined)';
   if (value === null || typeof value !== 'object') return value;

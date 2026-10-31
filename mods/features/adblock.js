@@ -62,6 +62,15 @@ JSON.parse = function () {
       r.adSlots = [];
     }
 
+    // Feed pages reserve in-feed ad slots ("Sponsored" tiles) through an
+    // adsControlFlowOpportunityReceivedCommand; the ads are fetched and placed
+    // afterwards, so they never pass through the feed filters below.
+    if (adBlockEnabled) {
+      for (const key of ['onResponseReceivedActions', 'onResponseReceivedCommands', 'onResponseReceivedEndpoints']) {
+        if (Array.isArray(r[key])) r[key] = r[key].filter(action => !action?.adsControlFlowOpportunityReceivedCommand);
+      }
+    }
+
     if (r.paidContentOverlay && !configRead('enablePaidPromotionOverlay')) {
       r.paidContentOverlay = null;
     }

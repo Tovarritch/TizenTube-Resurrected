@@ -110,6 +110,9 @@ def wait_for_page(secret_needed: bool = True, seconds: int = 60) -> None:
 
 
 def main() -> None:
+    # Titles can contain any language; the Windows console's default code page cannot.
+    if hasattr(sys.stdout, 'reconfigure'):
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('code', nargs='?')
     parser.add_argument('-s', '--statements', action='store_true', help='code is statements; use return')

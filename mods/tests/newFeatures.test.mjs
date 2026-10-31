@@ -160,3 +160,18 @@ test('Return YouTube Dislike sends the enabled video ID once and reuses the resu
     assert.equal(requests, 1);
     assert.equal(renderer.dislikeCountText.simpleText, '42');
 });
+
+test('members-only badges that carry only an icon or a style variant are recognised', () => {
+    const iconOnly = { tileRenderer: { header: { tileHeaderRenderer: { thumbnailOverlays: [
+        { thumbnailOverlayBadgeViewModel: { thumbnailBadges: [{ thumbnailBadgeViewModel: { icon: { sources: [{ clientResource: { imageName: 'x' } }] }, iconType: 'BADGE_MEMBERSHIP' } }] } },
+    ] } } } };
+    const styleVariant = { tileRenderer: { metadata: { tileMetadataRenderer: { lines: [{ lineRenderer: { items: [
+        { lineItemRenderer: { badge: { metadataBadgeRenderer: { style: 'BADGE_STYLE_TYPE_MEMBERS_ONLY_LOCKED' } } } },
+    ] } }] } } } };
+    const normal = { tileRenderer: { header: { tileHeaderRenderer: { thumbnailOverlays: [
+        { thumbnailOverlayTimeStatusRenderer: { text: { simpleText: '12:34' }, style: 'DEFAULT' } },
+    ] } }, metadata: { tileMetadataRenderer: { title: { simpleText: 'How members of the club...' } } } } };
+    assert.equal(isMembersOnlyVideo(iconOnly), true);
+    assert.equal(isMembersOnlyVideo(styleVariant), true);
+    assert.equal(isMembersOnlyVideo(normal), false);
+});

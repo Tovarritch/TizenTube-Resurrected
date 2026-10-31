@@ -229,8 +229,13 @@ function execute_once_dom_loaded() {
   }
 
   if (configRead('reloadHomeOnStartup')) {
-    if (configRead('launchToOnStartup')) {
-      resolveCommand(JSON.parse(configRead('launchToOnStartup')));
+    // Home may have loaded before TizenTube's filters were in place. Navigating
+    // to Home while already there fetches nothing, so Home is reloaded instead.
+    let launchTo = null;
+    try { launchTo = configRead('launchToOnStartup') ? JSON.parse(configRead('launchToOnStartup')) : null; } catch (_) {}
+    const launchesHome = ['FEtopics', 'FEwhat_to_watch', 'FEhome'].includes(launchTo?.browseEndpoint?.browseId);
+    if (launchTo && !launchesHome) {
+      resolveCommand(launchTo);
     } else {
       resolveCommand({
         signalAction: {

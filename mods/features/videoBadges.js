@@ -63,7 +63,23 @@ export function badgeSignals(item) {
     return signals;
 }
 
+// Membership badges that carry only an icon, or a style variant such as
+// BADGE_STYLE_TYPE_MEMBERS_ONLY_LOCKED, rather than one of the labels above.
+const MEMBER_ICONS = /MEMBER|SPONSORSHIP/;
+
+function hasMemberIcon(item, depth = 0) {
+    if (!item || typeof item !== 'object' || depth > MAX_DEPTH) return false;
+    for (const [key, value] of Object.entries(item)) {
+        if (key === 'parameters') continue;
+        if (BADGE_KEY.test(key) || /overlay/i.test(key)) {
+            if (JSON.stringify(value).match(/"(?:iconType|style|badgeStyle)":"([^"]+)"/g)?.some(match => MEMBER_ICONS.test(match.toUpperCase()))) return true;
+        } else if (hasMemberIcon(value, depth + 1)) return true;
+    }
+    return false;
+}
+
 export function isMembersOnlyVideo(item) {
+    if (hasMemberIcon(item)) return true;
     return badgeSignals(item).some(({ style, label }) => {
         const normalizedStyle = style.toUpperCase();
         if (MEMBER_STYLES.some(hint => normalizedStyle.includes(hint))) return true;
